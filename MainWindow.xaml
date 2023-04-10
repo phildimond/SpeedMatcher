@@ -1,0 +1,52 @@
+﻿<Window x:Class="SpeedMatcher.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SpeedMatcher"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="816"
+        Loaded="Window_Loaded"
+        Closing="Window_Closing">
+    <DockPanel Name="MainDockPanel">
+        <Menu Name="MainMenu" DockPanel.Dock="Top">
+            <MenuItem Name="FileItem" Header="_File">
+                <MenuItem Name="ExitItem" Header="_Exit"/>
+            </MenuItem>
+            <MenuItem Name="ConnectItem" Header="_Connect" Click="ConnectItem_Click" IsCheckable="True" IsChecked="False"/>
+        </Menu>
+        <Canvas DockPanel.Dock="Top" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
+            <ComboBox Name="SProgPortSelector" Canvas.Left="97" Canvas.Top="10" Width="120" SelectionChanged="SProgPortSelector_SelectionChanged"/>
+            <Label Content="SPROG Port:" Canvas.Left="22" Canvas.Top="10" HorizontalContentAlignment="Right" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+            <ScrollViewer Name="LogScrollViewer" Height="206" Width="522" Canvas.Left="268" Canvas.Top="10" HorizontalAlignment="Center" VerticalAlignment="Top"
+                          HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible">
+                <ListBox Name="LogLB" HorizontalAlignment="Stretch"  VerticalAlignment="Stretch"/>
+            </ScrollViewer>
+            <Button Name="SprogInfoButton" Content="Sprog Info" Canvas.Left="23" Canvas.Top="93" Click="SprogInfoButton_Click" HorizontalAlignment="Left" VerticalAlignment="Center" Width="100"/>
+            <Button Name="SprogGetModeButton" Content="Get Mode" Canvas.Left="23" Canvas.Top="118" Click="SprogGetModeButton_Click" HorizontalAlignment="Left" VerticalAlignment="Center" Width="100"/>
+            <Button Name="SprogSetModeButton" Content="Set Mode" Canvas.Left="23" Canvas.Top="143" Click="SprogSetModeButton_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Width="100"/>
+            <Border BorderBrush="Black" BorderThickness="1" Height="137" Width="307" Canvas.Left="483" Canvas.Top="229" HorizontalAlignment="Center" VerticalAlignment="Top">
+                <Canvas VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                    <CheckBox Name="ModeUnlockCheckBox" Content="Firmware Unlocked" IsChecked="False" Width="125" Height="18" Canvas.Left="10" Canvas.Top="10"/>
+                    <CheckBox Name="ModeEchoEnabledCheckBox" Content="Echo Enabled" IsChecked="False" Width="125" Height="18" Canvas.Left="10" Canvas.Top="32"/>
+                    <CheckBox Name="ModeCalcErrorCheckBox" Content="Calculate Error" IsChecked="False" Width="125" Height="18" Canvas.Left="10" Canvas.Top="55" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+                    <CheckBox Name="ModeRollingRoadCheckBox" Content="Rolling Road Mode" IsChecked="False" Width="125" Height="18" Canvas.Left="10" Canvas.Top="78" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+                    <CheckBox Name="ModeZTCCheckBox" Content="ZTC Mode" IsChecked="False" Width="125" Height="18" Canvas.Left="10" Canvas.Top="101" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <CheckBox Name="ModeBlueLineCheckBox" Content="BlueLine Mode" IsChecked="False" Width="125" Height="18" Canvas.Left="177" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                    <CheckBox Name="ModeDirectionCheckBox" Content="Reverse" IsChecked="False" Width="125" Height="18" Canvas.Left="177" Canvas.Top="29" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                    <RadioButton Name="ModeSpeed14RadioButton" IsChecked="False" Content="14 Speed Step" GroupName="SpeedSteps" Canvas.Top="52" Canvas.Left="177" HorizontalAlignment="Left" Width="122" Height="15"/>
+                    <RadioButton Name="ModeSpeed28RadioButton" IsChecked="False" Content="28 Speed Step" GroupName="SpeedSteps" Canvas.Top="72" Canvas.Left="177" HorizontalAlignment="Left" Width="122" Height="15"/>
+                    <RadioButton Name="ModeSpeed128RadioButton" IsChecked="False" Content="128 Speed Step" GroupName="SpeedSteps" Canvas.Top="92" Canvas.Left="177" HorizontalAlignment="Left" Width="122" Height="15"/>
+                    <CheckBox Name="ModeLongAddressCheckBox" Content="Long Address" IsChecked="False" Width="125" Height="18" Canvas.Left="177" Canvas.Top="112" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                </Canvas>
+            </Border>
+            <Button Name="SprogPowerOnButton" Content="Power On" Canvas.Left="23" Canvas.Top="168" Click="SprogPowerOnButton_Click"  HorizontalAlignment="Left" VerticalAlignment="Center" Width="100"/>
+            <Button Name="SprogPowerOffButton" Content="Power Off" Canvas.Left="23" Canvas.Top="193" Click="SprogPowerOffButton_Click"  HorizontalAlignment="Left" VerticalAlignment="Top" Width="100"/>
+            <Button Name="SprogGetAddressButton" Content="Current Address" Canvas.Left="23" Canvas.Top="218" Click="SprogGetAddressButton_Click"  HorizontalAlignment="Left" VerticalAlignment="Center" Width="100"/>
+            <Button Name="SpeedDownButton" Content="-" Canvas.Left="66" Canvas.Top="329" Click="SpeedDownButton_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Width="20"/>
+            <Button Name="SpeedUpButton" Content="+" Canvas.Left="94" Canvas.Top="329" Click="SpeedUpButton_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Width="20"/>
+            <Label Content="Speed" Canvas.Left="23" Canvas.Top="326"/>
+            <TextBox Name="SpeedTextBox" Text="0" Canvas.Left="119" TextWrapping="Wrap" Canvas.Top="330" Width="56" HorizontalAlignment="Left" VerticalAlignment="Center" TextChanged="SpeedTextBox_TextChanged"/>
+        </Canvas>
+    </DockPanel>
+</Window>
