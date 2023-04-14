@@ -29,7 +29,6 @@ namespace SpeedMatcher
     public partial class MainWindow : Window
     {
         private Settings? _Settings = null;
-        private SerialPort? _SprogPort = null;
         private byte _CurrentSpeed = 0;
         private Direction _CurrentDirection = Direction.Forward;
         private SprogII? _Sprog = null;
@@ -37,8 +36,6 @@ namespace SpeedMatcher
         public MainWindow()
         {
             InitializeComponent();
-            _Sprog = new SprogII(_SprogPort);
-            _Sprog.LogMessageAvailable += new LogEventDelegate(delegate(string s) { LogMessage(s); });
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -99,8 +96,7 @@ namespace SpeedMatcher
                     {
                         try
                         {
-                            _SprogPort = new SerialPort(_Settings.SprogPort, 9600, Parity.None, 8, StopBits.One);
-                            _SprogPort.Open();
+                            _Sprog = new SprogII(_Settings.SprogPort);
                         }
                         catch (Exception ex) 
                         { 
@@ -108,6 +104,7 @@ namespace SpeedMatcher
                             ConnectItem.IsChecked = false;
                             return;
                         }
+                        _Sprog.LogMessageAvailable += new LogEventDelegate(delegate (string s) { LogMessage(s); });
                         ConnectItem.Header = "Connected";
                         ConnectItem.IsChecked = true;
                         LogMessage($"SPROG connected on {_Settings.SprogPort}");
@@ -118,9 +115,9 @@ namespace SpeedMatcher
                     }
                     break;
                 case false:
-                    if (_Settings !=  null && _SprogPort != null && _SprogPort.IsOpen)
+                    if (_Settings !=  null && _Sprog != null && _Sprog.IsOpen)
                     {
-                        try { _SprogPort.Close(); }
+                        try { _Sprog.Close(); }
                         catch (Exception ex) { MessageBox.Show($"Exception when trying to open SPROG port: {ex.Message}"); }
                         ConnectItem.IsChecked = false;
                         ConnectItem.Header = "Connect";
@@ -132,40 +129,7 @@ namespace SpeedMatcher
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (_SprogPort != null && _SprogPort.IsOpen) { _SprogPort.Close(); }
-        }
-
-        private string SprogTransaction(string command, int timeout = 1000)
-        {
-            string s = string.Empty;
-            if (_SprogPort !=  null && _SprogPort.IsOpen) 
-            { 
-                try
-                {
-                    _SprogPort.Write(command);
-                    DateTime start = DateTime.Now;
-                    bool done = false;
-                    byte[] buffer = new byte[1024];
-                    while ((DateTime.Now - start).TotalMilliseconds < timeout && !done)
-                    {
-                        Thread.Sleep(100);
-                        int i = _SprogPort.BytesToRead;
-                        if (i > 0) 
-                        {
-                            _SprogPort.Read(buffer, 0, i);
-                            s += ASCIIEncoding.ASCII.GetString(buffer);
-                        }
-                        if (s.Contains("P>")) { done = true; }
-                    }
-                    if (s != string.Empty) 
-                    {    
-                        s = s.Replace("\r", "<CR>");
-                        s = s.Replace("\n", "<LF>");
-                    }
-                }
-                catch (Exception ex) { LogMessage($"Exception getting SPROG port: {ex.Message}"); }
-            }
-            return s;
+            if (_Sprog != null && _Sprog.IsOpen) { _Sprog.Close(); }
         }
 
         private void LogMessage(string s)
@@ -179,15 +143,16 @@ namespace SpeedMatcher
 
         private void SprogInfoButton_Click(object sender, RoutedEventArgs e)
         {
+            if (_Sprog == null) { return; }
             LogMessage($"Sending {SprogII.GetSprogInfoCommand} to SPROG");
-            string s = SprogTransaction(SprogII.GetSprogInfoCommand, 1000);
+            string s = _Sprog.SprogTransaction(SprogII.GetSprogInfoCommand, 1000);
             if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage($"Timeout!"); }
         }
 
         private void SprogGetModeButton_Click(object sender, RoutedEventArgs e)
         {
             LogMessage($"Sending {SprogII.GetModeCommand} to SPROG");
-            string s = SprogTransaction(SprogII.GetModeCommand, 1000);
+            string s = _Sprog.SprogTransaction(SprogII.GetModeCommand, 1000);
             if (s != string.Empty) 
             { 
                 LogMessage($"Received {s}");
@@ -215,7 +180,7 @@ namespace SpeedMatcher
         {
             UInt16 mode = ReadModeControls();
             LogMessage($"Sending M h{mode:X4}<CR> to SPROG");
-            string s = SprogTransaction($"M h{mode:X4}\r", 1000);
+            string s = _Sprog.SprogTransaction($"M h{mode:X4}\r", 1000);
             if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage($"Timeout!"); }
         }
 
@@ -256,14 +221,14 @@ namespace SpeedMatcher
         {
             //string s = "+\r";
             LogMessage($"Sending {SprogII.PowerOnCommand} to SPROG");
-            string s = SprogTransaction(SprogII.PowerOnCommand, 1000);
+            string s = _Sprog.SprogTransaction(SprogII.PowerOnCommand, 1000);
             if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage($"Timeout!"); }
         }
 
         private void SprogPowerOffButton_Click(object sender, RoutedEventArgs e)
         {
             LogMessage($"Sending {SprogII.PowerOffCommand} to SPROG");
-            string s = SprogTransaction(SprogII.PowerOffCommand, 1000);
+            string s = _Sprog.SprogTransaction(SprogII.PowerOffCommand, 1000);
             if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage("Timeout!"); }
         }
 
@@ -274,7 +239,7 @@ namespace SpeedMatcher
             string s = SprogII.ForwardSpeedCommand(_CurrentSpeed);
             if (ModeDirectionCheckBox.IsChecked == true) { s = SprogII.ReverseSpeedCommand(_CurrentSpeed); }
             LogMessage($"Sending {s} to SPROG");
-            s = SprogTransaction(s, 1000);
+            s = _Sprog.SprogTransaction(s, 1000);
             if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage("Timeout!"); }
         }
 
@@ -285,7 +250,7 @@ namespace SpeedMatcher
             string s = SprogII.ForwardSpeedCommand(_CurrentSpeed);
             if (ModeDirectionCheckBox.IsChecked == true) { s = SprogII.ReverseSpeedCommand(_CurrentSpeed); }
             LogMessage($"Sending {s} to SPROG");
-            s = SprogTransaction(s, 1000);
+            s = _Sprog.SprogTransaction(s, 1000);
             if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage("Timeout!"); }
         }
 
@@ -304,7 +269,7 @@ namespace SpeedMatcher
             string s = SprogII.ForwardSpeedCommand(_CurrentSpeed);
             if (ModeDirectionCheckBox.IsChecked == true) { s = SprogII.ReverseSpeedCommand(_CurrentSpeed); }
             LogMessage($"Sending {s} to SPROG");
-            s = SprogTransaction(s, 1000);
+            s = _Sprog.SprogTransaction(s, 1000);
             if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage("Timeout!"); }
         }
 
@@ -312,7 +277,7 @@ namespace SpeedMatcher
         {
             string s = "A\r";
             LogMessage($"Sending {s} to SPROG");
-            s = SprogTransaction(s, 1000);
+            s = _Sprog.SprogTransaction(s, 1000);
             if (s != string.Empty)
             {
                 LogMessage($"Received {s}");
@@ -335,7 +300,7 @@ namespace SpeedMatcher
         {
             string s = $"A {AddressTextBox.Text}\r";
             LogMessage($"Sending {s} to SPROG");
-            s = SprogTransaction(s, 1000);
+            s = _Sprog.SprogTransaction(s, 1000);
             if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage("Timeout!"); }
         }
 
@@ -349,7 +314,7 @@ namespace SpeedMatcher
             SpeedTextBox.Text = _CurrentSpeed.ToString();
             string s = SprogII.ReverseSpeedCommand(_CurrentSpeed);
             LogMessage($"Sending {s} to SPROG");
-            s = SprogTransaction(s, 1000);
+            s = _Sprog.SprogTransaction(s, 1000);
             if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage("Timeout!"); }
             // Now set the mode to change the direction
             ModeDirectionCheckBox.IsChecked = false;
@@ -360,7 +325,7 @@ namespace SpeedMatcher
             SpeedTextBox.Text = _CurrentSpeed.ToString();
             s = SprogII.ForwardSpeedCommand(_CurrentSpeed);
             LogMessage($"Sending {s} to SPROG");
-            s = SprogTransaction(s, 1000);
+            s = _Sprog.SprogTransaction(s, 1000);
             if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage("Timeout!"); }
             _CurrentDirection= Direction.Forward;
         }
@@ -375,7 +340,7 @@ namespace SpeedMatcher
             SpeedTextBox.Text = _CurrentSpeed.ToString();
             string s = SprogII.ForwardSpeedCommand(_CurrentSpeed);
             LogMessage($"Sending {s} to SPROG");
-            s = SprogTransaction(s, 1000);
+            s = _Sprog.SprogTransaction(s, 1000);
             if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage("Timeout!"); }
             // Now set the mode to change the direction
             ModeDirectionCheckBox.IsChecked = true;
@@ -386,7 +351,7 @@ namespace SpeedMatcher
             SpeedTextBox.Text = _CurrentSpeed.ToString();
             s = SprogII.ReverseSpeedCommand(_CurrentSpeed);
             LogMessage($"Sending {s} to SPROG");
-            s = SprogTransaction(s, 1000);
+            s = _Sprog.SprogTransaction(s, 1000);
             if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage("Timeout!"); }
             _CurrentDirection = Direction.Reverse;
         }
@@ -398,8 +363,91 @@ namespace SpeedMatcher
             string s = SprogII.ForwardSpeedCommand(_CurrentSpeed);
             if (_CurrentDirection == Direction.Reverse) { s = SprogII.ReverseSpeedCommand(_CurrentSpeed); }
             LogMessage($"Sending {s} to SPROG");
-            s = SprogTransaction(s, 1000);
+            s = _Sprog.SprogTransaction(s, 1000);
             if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage("Timeout!"); }
+        }
+
+        private void ReadDirectBitButton_Click(object sender, RoutedEventArgs e)
+        {
+            byte cv = 1;
+            try { cv = byte.Parse(CvTextBox.Text); } 
+            catch (Exception ex) { LogMessage($"Exception converting CV {CvTextBox.Text} to a number: {ex.Message}"); }
+            string s = SprogII.ReadCvDirectBitCommand(cv);
+            LogMessage($"Sending {s} to SPROG");
+            s = _Sprog.SprogTransaction(s, 5000);
+            if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage("Timeout!"); }
+            if (s.Contains("P>"))
+            {
+                s = s.Replace("<CR>", string.Empty);
+                s = s.Replace("<LF>", string.Empty);
+                s = s.Replace("P>", string.Empty);
+                s = s.Replace("=", string.Empty);
+                s = s.Replace(" ", string.Empty);
+                byte cvVal = 0;
+                bool isHex = false;
+                try
+                {
+                    if (s.Contains("h"))
+                    {
+                        isHex = true;
+                        s = s.Replace("h", string.Empty);
+                        cvVal = byte.Parse(s, System.Globalization.NumberStyles.HexNumber);
+                    }
+                    else { cvVal = byte.Parse(s, System.Globalization.NumberStyles.HexNumber); }
+                }
+                catch (Exception ex)
+                {
+                    LogMessage($"Could not convert [{s}] to a byte value: {ex.Message}"); return;
+                }
+                if (isHex) { CvValueTextBox.Text = $"${cvVal:X2}"; }
+                else { CvValueTextBox.Text = cvVal.ToString(); }
+            }
+        }
+
+        private void WriteDirectBitButton_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void ReadPagedModeButton_Click(object sender, RoutedEventArgs e)
+        {
+            byte cv = 1;
+            try { cv = byte.Parse(CvTextBox.Text); }
+            catch (Exception ex) { LogMessage($"Exception converting CV {CvTextBox.Text} to a number: {ex.Message}"); }
+            string s = SprogII.ReadCvPagedCommand(cv);
+            LogMessage($"Sending {s} to SPROG");
+            s = _Sprog.SprogTransaction(s, 5000);
+            if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage("Timeout!"); }
+            if (s.Contains("P>"))
+            {
+                s = s.Replace("<CR>", string.Empty);
+                s = s.Replace("<LF>", string.Empty);
+                s = s.Replace("P>", string.Empty);
+                s = s.Replace("=", string.Empty);
+                s = s.Replace(" ", string.Empty);
+                s = s.Replace("O", string.Empty);
+                byte cvVal = 0;
+                bool isHex = false;
+                try {
+                    if (s.Contains("h"))
+                    {
+                        isHex = true;
+                        s = s.Replace("h", string.Empty);
+                        cvVal = byte.Parse(s, System.Globalization.NumberStyles.HexNumber);
+                    }
+                    else { cvVal = byte.Parse(s, System.Globalization.NumberStyles.HexNumber); }
+                } 
+                catch (Exception ex) { 
+                    LogMessage($"Could not convert [{s}] to a byte value: {ex.Message}"); return; 
+                }
+                if (isHex) { CvValueTextBox.Text = $"${cvVal:X2}"; }
+                else { CvValueTextBox.Text = cvVal.ToString(); }
+            }
+        }
+
+        private void WritePagedModeButton_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

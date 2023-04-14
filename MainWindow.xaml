@@ -22,9 +22,9 @@
                           HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible">
                 <ListBox Name="LogLB" HorizontalAlignment="Stretch"  VerticalAlignment="Stretch"/>
             </ScrollViewer>
-            <Button Name="SprogInfoButton" Content="Sprog Info" Canvas.Left="23" Canvas.Top="93" Click="SprogInfoButton_Click" HorizontalAlignment="Left" VerticalAlignment="Center" Width="100"/>
-            <Button Name="SprogGetModeButton" Content="Get Mode" Canvas.Left="23" Canvas.Top="118" Click="SprogGetModeButton_Click" HorizontalAlignment="Left" VerticalAlignment="Center" Width="100"/>
-            <Button Name="SprogSetModeButton" Content="Set Mode" Canvas.Left="23" Canvas.Top="143" Click="SprogSetModeButton_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Width="100"/>
+            <Button Name="SprogInfoButton" Content="Sprog Info" Canvas.Left="21" Canvas.Top="49" Click="SprogInfoButton_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Width="100"/>
+            <Button Name="SprogGetModeButton" Content="Get Mode" Canvas.Left="21" Canvas.Top="74" Click="SprogGetModeButton_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Width="100"/>
+            <Button Name="SprogSetModeButton" Content="Set Mode" Canvas.Left="21" Canvas.Top="99" Click="SprogSetModeButton_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Width="100"/>
             <Border BorderBrush="Black" BorderThickness="1" Height="137" Width="307" Canvas.Left="483" Canvas.Top="229" HorizontalAlignment="Center" VerticalAlignment="Top">
                 <Canvas VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
                     <CheckBox Name="ModeUnlockCheckBox" Content="Firmware Unlocked" IsChecked="False" Width="125" Height="18" Canvas.Left="10" Canvas.Top="10"/>
@@ -40,11 +40,11 @@
                     <CheckBox Name="ModeLongAddressCheckBox" Content="Long Address" IsChecked="False" Width="125" Height="18" Canvas.Left="177" Canvas.Top="112" HorizontalAlignment="Left" VerticalAlignment="Top"/>
                 </Canvas>
             </Border>
-            <Button Name="SprogPowerOnButton" Content="Power On" Canvas.Left="23" Canvas.Top="168" Click="SprogPowerOnButton_Click"  HorizontalAlignment="Left" VerticalAlignment="Center" Width="100"/>
-            <Button Name="SprogPowerOffButton" Content="Power Off" Canvas.Left="23" Canvas.Top="193" Click="SprogPowerOffButton_Click"  HorizontalAlignment="Left" VerticalAlignment="Top" Width="100"/>
-            <Button Name="SprogGetAddressButton" Content="Current Address" Canvas.Left="23" Canvas.Top="218" Click="SprogGetAddressButton_Click"  HorizontalAlignment="Left" VerticalAlignment="Center" Width="100"/>
-            <TextBox Name="AddressTextBox" Text="" Canvas.Left="128" TextWrapping="Wrap" Canvas.Top="219" Width="72" HorizontalAlignment="Center" VerticalAlignment="Top"/>
-            <Button Name="SprogSetAddressButton" Content="Set" Canvas.Left="205" Canvas.Top="218" Click="SprogSetAddressButton_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Width="26"/>
+            <Button Name="SprogPowerOnButton" Content="Power On" Canvas.Left="21" Canvas.Top="124" Click="SprogPowerOnButton_Click"  HorizontalAlignment="Left" VerticalAlignment="Top" Width="100"/>
+            <Button Name="SprogPowerOffButton" Content="Power Off" Canvas.Left="21" Canvas.Top="149" Click="SprogPowerOffButton_Click"  HorizontalAlignment="Left" VerticalAlignment="Top" Width="100"/>
+            <Button Name="SprogGetAddressButton" Content="Current Address" Canvas.Left="21" Canvas.Top="174" Click="SprogGetAddressButton_Click"  HorizontalAlignment="Left" VerticalAlignment="Top" Width="100"/>
+            <TextBox Name="AddressTextBox" Text="" Canvas.Left="126" TextWrapping="Wrap" Canvas.Top="175" Width="72" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+            <Button Name="SprogSetAddressButton" Content="Set" Canvas.Left="203" Canvas.Top="174" Click="SprogSetAddressButton_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Width="26"/>
             <Button Name="SpeedDownButton" Content="-" Canvas.Left="66" Canvas.Top="329" Click="SpeedDownButton_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Width="20"/>
             <Button Name="SpeedUpButton" Content="+" Canvas.Left="94" Canvas.Top="329" Click="SpeedUpButton_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Width="20"/>
             <Label Content="Speed" Canvas.Left="23" Canvas.Top="326"/>
@@ -53,6 +53,14 @@
             <Button Name="SprogForwardButton" Content="Forward" Canvas.Left="211" Canvas.Top="329" Click="SprogForwardButton_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Width="70"/>
             <Button Name="SprogReverseButton" Content="Reverse" Canvas.Left="286" Canvas.Top="330" Click="SprogReverseButton_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Width="70"/>
             <Button Name="SprogIdleButton" Content="Idle" Canvas.Left="251" Canvas.Top="355" Click="SprogIdleButton_Click" HorizontalAlignment="Left" VerticalAlignment="Center" Width="70"/>
+            <Label Content="CV:" Canvas.Left="21" Canvas.Top="234" HorizontalContentAlignment="Right"/>
+            <TextBox Name="CvTextBox" Text="1" Canvas.Left="49" TextWrapping="Wrap" Canvas.Top="239" Width="72" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+            <Label Content="Value:" Canvas.Left="10" Canvas.Top="257" HorizontalContentAlignment="Right"/>
+            <TextBox Name="CvValueTextBox" Text="" Canvas.Left="49" TextWrapping="Wrap" Canvas.Top="262" Width="72" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+            <Button Name="ReadDirectBitButton" Content="Read Direct Bit" Canvas.Left="157" Canvas.Top="237" Click="ReadDirectBitButton_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Width="100"/>
+            <Button Name="WriteDirectBitButton" Content="Write Direct Bit" Canvas.Left="262" Canvas.Top="237" Click="WriteDirectBitButton_Click" HorizontalAlignment="Left" VerticalAlignment="Center" Width="100"/>
+            <Button Name="ReadPagedModeButton" Content="Read Paged" Canvas.Left="157" Canvas.Top="260" Click="ReadPagedModeButton_Click" HorizontalAlignment="Center" VerticalAlignment="Top" Width="100"/>
+            <Button Name="WritePagedModeButton" Content="Write Paged" Canvas.Left="262" Canvas.Top="260" Click="WritePagedModeButton_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Width="100"/>
         </Canvas>
     </DockPanel>
 </Window>
