@@ -32,6 +32,7 @@ namespace SpeedMatcher
         private byte _CurrentSpeed = 0;
         private Direction _CurrentDirection = Direction.Forward;
         private SprogII? _Sprog = null;
+        private bool _F0State = false;
 
         public MainWindow()
         {
@@ -406,7 +407,25 @@ namespace SpeedMatcher
 
         private void WriteDirectBitButton_Click(object sender, RoutedEventArgs e)
         {
-
+            byte cv = 1;
+            try { cv = byte.Parse(CvTextBox.Text); }
+            catch (Exception ex) { LogMessage($"Exception converting CV {CvTextBox.Text} to a number: {ex.Message}"); }
+            byte cvVal = 0;
+            if (CvValueTextBox.Text.Contains('$'))
+            {
+                string hv = CvValueTextBox.Text.Replace("$", string.Empty);
+                try { cvVal = byte.Parse(hv,System.Globalization.NumberStyles.HexNumber); }
+                catch (Exception ex) { LogMessage($"Exception converting hex CV Value {CvValueTextBox.Text} to a number: {ex.Message}"); }
+            }
+            else 
+            {
+                try { cvVal = byte.Parse(CvValueTextBox.Text); }
+                catch (Exception ex) { LogMessage($"Exception converting CV Value {CvValueTextBox.Text} to a number: {ex.Message}"); }
+            }
+            string s = SprogII.WriteCvDirectBitCommand(cv, cvVal);
+            LogMessage($"Sending {s} to SPROG");
+            s = _Sprog.SprogTransaction(s, 5000);
+            if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage("Timeout!"); }
         }
 
         private void ReadPagedModeButton_Click(object sender, RoutedEventArgs e)
@@ -447,7 +466,26 @@ namespace SpeedMatcher
 
         private void WritePagedModeButton_Click(object sender, RoutedEventArgs e)
         {
-
+            byte cv = 1;
+            try { cv = byte.Parse(CvTextBox.Text); }
+            catch (Exception ex) { LogMessage($"Exception converting CV {CvTextBox.Text} to a number: {ex.Message}"); }
+            byte cvVal = 0;
+            if (CvValueTextBox.Text.Contains('$'))
+            {
+                string hv = CvValueTextBox.Text.Replace("$", string.Empty);
+                try { cvVal = byte.Parse(hv, System.Globalization.NumberStyles.HexNumber); }
+                catch (Exception ex) { LogMessage($"Exception converting hex CV Value {CvValueTextBox.Text} to a number: {ex.Message}"); }
+            }
+            else
+            {
+                try { cvVal = byte.Parse(CvValueTextBox.Text); }
+                catch (Exception ex) { LogMessage($"Exception converting CV Value {CvValueTextBox.Text} to a number: {ex.Message}"); }
+            }
+            string s = SprogII.WriteCvPagedCommand(cv, cvVal);
+            LogMessage($"Sending {s} to SPROG");
+            s = _Sprog.SprogTransaction(s, 5000);
+            if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage("Timeout!"); }
         }
+
     }
 }
