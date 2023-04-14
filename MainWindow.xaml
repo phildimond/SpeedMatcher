@@ -44,14 +44,15 @@
             <Button Name="SprogPowerOffButton" Content="Power Off" Canvas.Left="23" Canvas.Top="193" Click="SprogPowerOffButton_Click"  HorizontalAlignment="Left" VerticalAlignment="Top" Width="100"/>
             <Button Name="SprogGetAddressButton" Content="Current Address" Canvas.Left="23" Canvas.Top="218" Click="SprogGetAddressButton_Click"  HorizontalAlignment="Left" VerticalAlignment="Center" Width="100"/>
             <TextBox Name="AddressTextBox" Text="" Canvas.Left="128" TextWrapping="Wrap" Canvas.Top="219" Width="72" HorizontalAlignment="Center" VerticalAlignment="Top"/>
-            <Button Name="SprogSetAddressButton" Content="Set" Canvas.Left="205" Canvas.Top="218" Click="SprogSetAddressButton_Click"  HorizontalAlignment="Left" VerticalAlignment="Top" Width="26"/>
+            <Button Name="SprogSetAddressButton" Content="Set" Canvas.Left="205" Canvas.Top="218" Click="SprogSetAddressButton_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Width="26"/>
             <Button Name="SpeedDownButton" Content="-" Canvas.Left="66" Canvas.Top="329" Click="SpeedDownButton_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Width="20"/>
             <Button Name="SpeedUpButton" Content="+" Canvas.Left="94" Canvas.Top="329" Click="SpeedUpButton_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Width="20"/>
             <Label Content="Speed" Canvas.Left="23" Canvas.Top="326"/>
             <TextBox Name="SpeedTextBox" Text="0" Canvas.Left="119" TextWrapping="Wrap" Canvas.Top="330" Width="56" HorizontalAlignment="Left" VerticalAlignment="Center"/>
             <Button Name="SprogSetSpeedButton" Content="Set" Canvas.Left="180" Canvas.Top="329" Click="SprogSetSpeedButton_Click"  HorizontalAlignment="Left" VerticalAlignment="Top" Width="26"/>
             <Button Name="SprogForwardButton" Content="Forward" Canvas.Left="211" Canvas.Top="329" Click="SprogForwardButton_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Width="70"/>
-            <Button Name="SprogReverseButton" Content="Reverse" Canvas.Left="286" Canvas.Top="330" Click="SprogReverseButton_Click"  HorizontalAlignment="Left" VerticalAlignment="Top" Width="70"/>
+            <Button Name="SprogReverseButton" Content="Reverse" Canvas.Left="286" Canvas.Top="330" Click="SprogReverseButton_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Width="70"/>
+            <Button Name="SprogIdleButton" Content="Idle" Canvas.Left="251" Canvas.Top="355" Click="SprogIdleButton_Click" HorizontalAlignment="Left" VerticalAlignment="Center" Width="70"/>
         </Canvas>
     </DockPanel>
 </Window>

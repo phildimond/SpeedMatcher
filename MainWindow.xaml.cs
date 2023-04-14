@@ -390,5 +390,16 @@ namespace SpeedMatcher
             if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage("Timeout!"); }
             _CurrentDirection = Direction.Reverse;
         }
+
+        private void SprogIdleButton_Click(object sender, RoutedEventArgs e)
+        {
+            _CurrentSpeed = 0;
+            SpeedTextBox.Text = _CurrentSpeed.ToString();
+            string s = SprogII.ForwardSpeedCommand(_CurrentSpeed);
+            if (_CurrentDirection == Direction.Reverse) { s = SprogII.ReverseSpeedCommand(_CurrentSpeed); }
+            LogMessage($"Sending {s} to SPROG");
+            s = SprogTransaction(s, 1000);
+            if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage("Timeout!"); }
+        }
     }
 }
