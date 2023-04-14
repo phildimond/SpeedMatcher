@@ -17,6 +17,12 @@ using System.Windows.Shapes;
 
 namespace SpeedMatcher
 {
+    public enum Direction
+    {
+        Forward = 0,
+        Reverse = 1
+    };
+
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -25,10 +31,14 @@ namespace SpeedMatcher
         private Settings? _Settings = null;
         private SerialPort? _SprogPort = null;
         private byte _CurrentSpeed = 0;
+        private Direction _CurrentDirection = Direction.Forward;
+        private SprogII? _Sprog = null;
 
         public MainWindow()
         {
             InitializeComponent();
+            _Sprog = new SprogII(_SprogPort);
+            _Sprog.LogMessageAvailable += new LogEventDelegate(delegate(string s) { LogMessage(s); });
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -60,6 +70,12 @@ namespace SpeedMatcher
                 }
             }
 
+            // If the SPROG port exists, try to connect to it
+            if (SProgPortSelector.SelectedIndex != 0)
+            {
+                ConnectItem.IsChecked = true;
+                ConnectItem_Click(this, new RoutedEventArgs());
+            }
         }
 
         private void SProgPortSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -86,19 +102,25 @@ namespace SpeedMatcher
                             _SprogPort = new SerialPort(_Settings.SprogPort, 9600, Parity.None, 8, StopBits.One);
                             _SprogPort.Open();
                         }
-                        catch (Exception ex) { MessageBox.Show($"Exception when trying to open SPROG port: {ex.Message}"); }
+                        catch (Exception ex) 
+                        { 
+                            MessageBox.Show($"Exception when trying to open SPROG port: {ex.Message}"); 
+                            ConnectItem.IsChecked = false;
+                            return;
+                        }
                         ConnectItem.Header = "Connected";
                         ConnectItem.IsChecked = true;
                         LogMessage($"SPROG connected on {_Settings.SprogPort}");
+                        SprogInfoButton_Click(this, new RoutedEventArgs());
+                        SprogGetModeButton_Click(this, new RoutedEventArgs());
+                        SprogGetAddressButton_Click(this, new RoutedEventArgs());
+                        SprogPowerOffButton_Click(this, new RoutedEventArgs());
                     }
                     break;
                 case false:
                     if (_Settings !=  null && _SprogPort != null && _SprogPort.IsOpen)
                     {
-                        try
-                        {
-                            _SprogPort.Close();
-                        }
+                        try { _SprogPort.Close(); }
                         catch (Exception ex) { MessageBox.Show($"Exception when trying to open SPROG port: {ex.Message}"); }
                         ConnectItem.IsChecked = false;
                         ConnectItem.Header = "Connect";
@@ -148,6 +170,8 @@ namespace SpeedMatcher
 
         private void LogMessage(string s)
         {
+            s = s.Replace("\r", "<CR>");
+            s = s.Replace("\n", "<LF>");
             LogLB.Items.Add(s);
             while (LogLB.Items.Count > 100) { LogLB.Items.RemoveAt(0); }
             LogScrollViewer.ScrollToEnd();
@@ -155,15 +179,15 @@ namespace SpeedMatcher
 
         private void SprogInfoButton_Click(object sender, RoutedEventArgs e)
         {
-            LogMessage("Sending ?<CR> to SPROG");
-            string s = SprogTransaction("?\r", 1000);
+            LogMessage($"Sending {SprogII.GetSprogInfoCommand} to SPROG");
+            string s = SprogTransaction(SprogII.GetSprogInfoCommand, 1000);
             if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage($"Timeout!"); }
         }
 
         private void SprogGetModeButton_Click(object sender, RoutedEventArgs e)
         {
-            LogMessage("Sending M<CR> to SPROG");
-            string s = SprogTransaction("M\r", 1000);
+            LogMessage($"Sending {SprogII.GetModeCommand} to SPROG");
+            string s = SprogTransaction(SprogII.GetModeCommand, 1000);
             if (s != string.Empty) 
             { 
                 LogMessage($"Received {s}");
@@ -203,7 +227,8 @@ namespace SpeedMatcher
             if ((value & 0x0010) > 0) { ModeRollingRoadCheckBox.IsChecked = true; } else { ModeRollingRoadCheckBox.IsChecked = false; }
             if ((value & 0x0020) > 0) { ModeZTCCheckBox.IsChecked = true; } else { ModeZTCCheckBox.IsChecked = false; }
             if ((value & 0x0040) > 0) { ModeBlueLineCheckBox.IsChecked = true; } else { ModeBlueLineCheckBox.IsChecked = false; }
-            if ((value & 0x0100) > 0) { ModeDirectionCheckBox.IsChecked = true; } else { ModeDirectionCheckBox.IsChecked = false; }
+            if ((value & 0x0100) > 0) { ModeDirectionCheckBox.IsChecked = true; _CurrentDirection = Direction.Reverse; } 
+            else { ModeDirectionCheckBox.IsChecked = false; _CurrentDirection = Direction.Forward; }
             if ((value & 0x0200) > 0) { ModeSpeed14RadioButton.IsChecked = true; } else { ModeSpeed14RadioButton.IsChecked = false; }
             if ((value & 0x0400) > 0) { ModeSpeed28RadioButton.IsChecked = true; } else { ModeSpeed28RadioButton.IsChecked = false; }
             if ((value & 0x0800) > 0) { ModeSpeed128RadioButton.IsChecked = true; } else { ModeSpeed128RadioButton.IsChecked = false; }
@@ -229,44 +254,42 @@ namespace SpeedMatcher
 
         private void SprogPowerOnButton_Click(object sender, RoutedEventArgs e)
         {
-            LogMessage("Sending +<CR> to SPROG");
-            string s = SprogTransaction("+\r", 1000);
+            //string s = "+\r";
+            LogMessage($"Sending {SprogII.PowerOnCommand} to SPROG");
+            string s = SprogTransaction(SprogII.PowerOnCommand, 1000);
             if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage($"Timeout!"); }
         }
 
         private void SprogPowerOffButton_Click(object sender, RoutedEventArgs e)
         {
-            LogMessage("Sending -<CR> to SPROG");
-            string s = SprogTransaction("-\r", 1000);
-            if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage($"Timeout!"); }
+            LogMessage($"Sending {SprogII.PowerOffCommand} to SPROG");
+            string s = SprogTransaction(SprogII.PowerOffCommand, 1000);
+            if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage("Timeout!"); }
         }
 
         private void SpeedDownButton_Click(object sender, RoutedEventArgs e)
         {
             if (_CurrentSpeed > 0) { _CurrentSpeed--; }
             SpeedTextBox.Text = _CurrentSpeed.ToString();
-            LogMessage($"Sending >{_CurrentSpeed}<CR> to SPROG");
-            string s = SprogTransaction($"<{_CurrentSpeed}\r", 1000);
-            if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage($"Timeout!"); }
+            string s = SprogII.ForwardSpeedCommand(_CurrentSpeed);
+            if (ModeDirectionCheckBox.IsChecked == true) { s = SprogII.ReverseSpeedCommand(_CurrentSpeed); }
+            LogMessage($"Sending {s} to SPROG");
+            s = SprogTransaction(s, 1000);
+            if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage("Timeout!"); }
         }
 
         private void SpeedUpButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_CurrentSpeed < 128) { _CurrentSpeed++; }
+            if (_CurrentSpeed < 127) { _CurrentSpeed++; }
             SpeedTextBox.Text = _CurrentSpeed.ToString();
-            LogMessage($"Sending >{_CurrentSpeed}<CR> to SPROG");
-            string s = SprogTransaction($">{_CurrentSpeed}\r", 1000);
-            if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage($"Timeout!"); }
+            string s = SprogII.ForwardSpeedCommand(_CurrentSpeed);
+            if (ModeDirectionCheckBox.IsChecked == true) { s = SprogII.ReverseSpeedCommand(_CurrentSpeed); }
+            LogMessage($"Sending {s} to SPROG");
+            s = SprogTransaction(s, 1000);
+            if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage("Timeout!"); }
         }
 
-        private void SprogGetAddressButton_Click(object sender, RoutedEventArgs e)
-        {
-            LogMessage("Sending A<CR> to SPROG");
-            string s = SprogTransaction("A\r", 1000);
-            if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage($"Timeout!"); }
-        }
-
-        private void SpeedTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        private void SprogSetSpeedButton_Click(object sender, RoutedEventArgs e)
         {
             byte sp = 0;
             try
@@ -275,25 +298,97 @@ namespace SpeedMatcher
             }
             catch (Exception) { SpeedTextBox.Text = _CurrentSpeed.ToString(); return; }
 
-            if (sp > 128)
+            if (sp > 127) { sp = 127; }
+            _CurrentSpeed = sp;
+            SpeedTextBox.Text = _CurrentSpeed.ToString();
+            string s = SprogII.ForwardSpeedCommand(_CurrentSpeed);
+            if (ModeDirectionCheckBox.IsChecked == true) { s = SprogII.ReverseSpeedCommand(_CurrentSpeed); }
+            LogMessage($"Sending {s} to SPROG");
+            s = SprogTransaction(s, 1000);
+            if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage("Timeout!"); }
+        }
+
+        private void SprogGetAddressButton_Click(object sender, RoutedEventArgs e)
+        {
+            string s = "A\r";
+            LogMessage($"Sending {s} to SPROG");
+            s = SprogTransaction(s, 1000);
+            if (s != string.Empty)
             {
-                sp = 128;
-                SpeedTextBox.Text = sp.ToString();
+                LogMessage($"Received {s}");
+                if (s.Contains("P>"))
+                {
+                    s = s.Replace("<CR>", string.Empty);
+                    s = s.Replace("<LF>", string.Empty);
+                    s = s.Replace("P>", string.Empty);
+                    s = s.Replace("=", string.Empty);
+                    s = s.Replace(" ", string.Empty);
+                    int i = 0;
+                    try { i = int.Parse(s); } catch { LogMessage($"Exception converting {s} to an int."); }
+                    AddressTextBox.Text = i.ToString();
+                }
             }
-            else if (sp < _CurrentSpeed)
-            {
-                _CurrentSpeed = sp;
-                LogMessage($"Sending <{_CurrentSpeed}<CR> to SPROG");
-                string s = SprogTransaction($"<{_CurrentSpeed}\r", 1000);
-                if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage($"Timeout!"); }
-            }
-            else if (sp > _CurrentSpeed)
-            {
-                _CurrentSpeed = sp;
-                LogMessage($"Sending >{_CurrentSpeed}<CR> to SPROG");
-                string s = SprogTransaction($">{_CurrentSpeed}\r", 1000);
-                if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage($"Timeout!"); }
-            }
+            else { LogMessage("Timeout!"); }
+        }
+
+        private void SprogSetAddressButton_Click(object sender, RoutedEventArgs e)
+        {
+            string s = $"A {AddressTextBox.Text}\r";
+            LogMessage($"Sending {s} to SPROG");
+            s = SprogTransaction(s, 1000);
+            if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage("Timeout!"); }
+        }
+
+        private void SprogForwardButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_CurrentDirection== Direction.Forward) { return; }
+            // We have to stop the loco, then reverse it, then speed up again
+            byte oldSpeed = _CurrentSpeed;
+            // First set speed to zero
+            _CurrentSpeed = 0;
+            SpeedTextBox.Text = _CurrentSpeed.ToString();
+            string s = SprogII.ReverseSpeedCommand(_CurrentSpeed);
+            LogMessage($"Sending {s} to SPROG");
+            s = SprogTransaction(s, 1000);
+            if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage("Timeout!"); }
+            // Now set the mode to change the direction
+            ModeDirectionCheckBox.IsChecked = false;
+            SprogSetModeButton_Click(this, new RoutedEventArgs());
+            _CurrentDirection = Direction.Reverse;
+            // Finally set the speed back to the original value
+            _CurrentSpeed = oldSpeed;
+            SpeedTextBox.Text = _CurrentSpeed.ToString();
+            s = SprogII.ForwardSpeedCommand(_CurrentSpeed);
+            LogMessage($"Sending {s} to SPROG");
+            s = SprogTransaction(s, 1000);
+            if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage("Timeout!"); }
+            _CurrentDirection= Direction.Forward;
+        }
+
+        private void SprogReverseButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_CurrentDirection== Direction.Reverse) { return; }
+            // We have to stop the loco, then reverse it, then speed up again
+            byte oldSpeed = _CurrentSpeed;
+            // First set speed to zero
+            _CurrentSpeed = 0;
+            SpeedTextBox.Text = _CurrentSpeed.ToString();
+            string s = SprogII.ForwardSpeedCommand(_CurrentSpeed);
+            LogMessage($"Sending {s} to SPROG");
+            s = SprogTransaction(s, 1000);
+            if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage("Timeout!"); }
+            // Now set the mode to change the direction
+            ModeDirectionCheckBox.IsChecked = true;
+            SprogSetModeButton_Click(this, new RoutedEventArgs());
+            _CurrentDirection = Direction.Reverse;
+            // Finally set the speed back to the original value
+            _CurrentSpeed = oldSpeed;
+            SpeedTextBox.Text = _CurrentSpeed.ToString();
+            s = SprogII.ReverseSpeedCommand(_CurrentSpeed);
+            LogMessage($"Sending {s} to SPROG");
+            s = SprogTransaction(s, 1000);
+            if (s != string.Empty) { LogMessage($"Received {s}"); } else { LogMessage("Timeout!"); }
+            _CurrentDirection = Direction.Reverse;
         }
     }
 }
